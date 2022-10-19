@@ -25,9 +25,23 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Stopping Postgres Server
+    - name: Reading KeyVault Secrets
+      id: ReadKeyVault
+      run: |
+        InActiveDatabaseUrl=$(az keyvault secret show --name "InActive-database-url" --vault-name "parteyKeyVault1" --query "value" --output tsv)
+        echo "::set-output name=InActiveDatabaseUrl::$InActiveDatabaseUrl"
+        
+    - name: Extract Inactive server name from hostname using Powershell
+      id: ReadKeyVaultPowershell
+      shell: pwsh
+      run: |
+            $ServerURLWithHost = "${{ steps.ReadKeyVault.outputs.InActiveDatabaseUrl }}"
+            $ServerName = $ServerURLWithHost.Substring(0, $ServerURLWithHost.IndexOf("."))
+            echo "::set-output name=ServerName::$ServerName"
+
+    - name: Starting Inactive Postgres Server
       uses: azure/CLI@v1
       with:
         azcliversion: 2.30.0
         inlineScript: |
-          az postgres flexible-server stop  --resource-group rgManish --name parteyfs
+          az postgres flexible-server start  --resource-group rgManish --name "${{ steps.ReadKeyVaultPowershell.outputs.ServerName }}"
