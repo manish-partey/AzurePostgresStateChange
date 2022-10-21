@@ -29,7 +29,9 @@ jobs:
       id: ReadKeyVault
       run: |
         InActiveDatabaseUrl=$(az keyvault secret show --name "InActive-database-url" --vault-name "parteyKeyVault1" --query "value" --output tsv)
+        ActiveDatabaseUrl=$(az keyvault secret show --name "Active-database-url" --vault-name "parteyKeyVault" --query "value" --output tsv)
         echo "::set-output name=InActiveDatabaseUrl::$InActiveDatabaseUrl"
+        echo "::set-output name=ActiveDatabaseUrl::$ActiveDatabaseUrl"
         
     - name: Extract Inactive server name from hostname using Powershell
       id: ReadKeyVaultPowershell
@@ -45,3 +47,9 @@ jobs:
         azcliversion: 2.30.0
         inlineScript: |
           az postgres flexible-server start  --resource-group rgManish --name "${{ steps.ReadKeyVaultPowershell.outputs.ServerName }}"
+
+    - name: Swapping KeyVault Secrets
+      run: |
+        az keyvault secret set --vault-name "parteyKeyVault" --name "Active-database-url" --value "${{ steps.ReadKeyVault.outputs.InActiveDatabaseUrl }}"
+        az keyvault secret set --vault-name "parteyKeyVault" --name "InActive-database-url" --value "${{ steps.ReadKeyVault.outputs.ActiveDatabaseUrl }}"
+        
