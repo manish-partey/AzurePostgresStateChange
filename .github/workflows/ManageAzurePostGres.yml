@@ -29,7 +29,7 @@ jobs:
       id: ReadKeyVault
       run: |
         InActiveDatabaseUrl=$(az keyvault secret show --name "InActive-database-url" --vault-name "parteyKeyVault1" --query "value" --output tsv)
-        ActiveDatabaseUrl=$(az keyvault secret show --name "Active-database-url" --vault-name "parteyKeyVault" --query "value" --output tsv)
+        ActiveDatabaseUrl=$(az keyvault secret show --name "Active-database-url" --vault-name "parteyKeyVault1" --query "value" --output tsv)
         echo "::set-output name=InActiveDatabaseUrl::$InActiveDatabaseUrl"
         echo "::set-output name=ActiveDatabaseUrl::$ActiveDatabaseUrl"
         
@@ -50,6 +50,6 @@ jobs:
 
     - name: Swapping KeyVault Secrets
       run: |
-        az keyvault secret set --vault-name "parteyKeyVault" --name "Active-database-url" --value "${{ steps.ReadKeyVault.outputs.InActiveDatabaseUrl }}"
-        az keyvault secret set --vault-name "parteyKeyVault" --name "InActive-database-url" --value "${{ steps.ReadKeyVault.outputs.ActiveDatabaseUrl }}"
+        az keyvault secret set --vault-name "parteyKeyVault1" --name "Active-database-url" --value "${{ steps.ReadKeyVault.outputs.InActiveDatabaseUrl }}"
+        az keyvault secret set --vault-name "parteyKeyVault1" --name "InActive-database-url" --value "${{ steps.ReadKeyVault.outputs.ActiveDatabaseUrl }}"
         
